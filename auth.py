@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from database import db, obj_to_str
 import models
 
-
 SECRET_KEY = "supersecretkey"   # use env variable in real apps
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
