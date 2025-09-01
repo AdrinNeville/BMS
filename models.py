@@ -28,13 +28,13 @@ class BookCreate(BookBase):
     pass
 
 class BookResponse(BookBase):
-    id: str
+    id: int  # Changed to int for auto-increment
     available: bool
 
 # ---------- Borrow ----------
 class BorrowResponse(BaseModel):
     id: str
     user_id: str
-    book_id: str
+    book_id: int  # Changed to int to match auto-increment book ID
     borrowed_at: datetime
     returned_at: Optional[datetime]
