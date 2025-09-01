@@ -2,20 +2,24 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
-# ----- User -----
+# ---------- Auth ----------
 class UserBase(BaseModel):
     name: str
     email: EmailStr
 
 class UserCreate(UserBase):
     password: str
-    role: Optional[str] = "member"
+    role: Optional[str] = "member"   # "member" or "admin"
 
 class UserResponse(UserBase):
     id: str
     role: str
 
-# ----- Book -----
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+# ---------- Books ----------
 class BookBase(BaseModel):
     title: str
     author: str
@@ -27,7 +31,7 @@ class BookResponse(BookBase):
     id: str
     available: bool
 
-# ----- Borrow -----
+# ---------- Borrow ----------
 class BorrowResponse(BaseModel):
     id: str
     user_id: str
