@@ -2,8 +2,17 @@ from fastapi import FastAPI
 from database import db
 from routers import users, books, borrow
 import auth
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Library Management System with Auth")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth.router)
 app.include_router(users.router)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Authentication</title>
+    <title>Library Management System</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -14,12 +14,12 @@
             <div class="brand-section">
                 <div class="logo-container">
                     <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 12l2 2 4-4"/>
-                        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                 </div>
                 <h1 class="brand-title" id="brandTitle">Welcome Back</h1>
-                <p class="brand-subtitle" id="brandSubtitle">Sign in to your account to continue</p>
+                <p class="brand-subtitle" id="brandSubtitle">Sign in to your library account</p>
             </div>
 
             <!-- Form Container -->
@@ -102,6 +102,34 @@
                     </div>
 
                     <div class="input-group">
+                        <label for="roleSelect" class="input-label">Account Type</label>
+                        <div class="role-selection">
+                            <div class="role-option selected" data-role="member">
+                                <div class="role-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <div class="role-title">Member</div>
+                                <div class="role-desc">Browse and borrow books</div>
+                            </div>
+                            <div class="role-option" data-role="admin">
+                                <div class="role-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="M2 17l10 5 10-5"/>
+                                        <path d="M2 12l10 5 10-5"/>
+                                    </svg>
+                                </div>
+                                <div class="role-title">Admin</div>
+                                <div class="role-desc">Manage books and users</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="roleSelect" value="member">
+                    </div>
+
+                    <div class="input-group">
                         <label for="registerPassword" class="input-label">Password</label>
                         <div class="input-wrapper">
                             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -180,6 +208,28 @@
         </div>
     </div>
 
+    <script>
+        // Role selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleOptions = document.querySelectorAll('.role-option');
+            const roleSelect = document.getElementById('roleSelect');
+            
+            if (roleOptions.length > 0 && roleSelect) {
+                roleOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        // Remove selected class from all options
+                        roleOptions.forEach(opt => opt.classList.remove('selected'));
+                        
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        
+                        // Update hidden input value
+                        roleSelect.value = this.dataset.role;
+                    });
+                });
+            }
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

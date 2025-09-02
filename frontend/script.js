@@ -1,3 +1,6 @@
+// Configuration
+const API_BASE_URL = 'http://localhost:8000'; // Adjust this to your FastAPI server URL
+
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
@@ -18,6 +21,7 @@ const registerName = document.getElementById('registerName');
 const registerEmail = document.getElementById('registerEmail');
 const registerPassword = document.getElementById('registerPassword');
 const confirmPassword = document.getElementById('confirmPassword');
+const roleSelect = document.getElementById('roleSelect');
 
 // Error elements
 const loginEmailError = document.getElementById('loginEmailError');
@@ -76,6 +80,44 @@ function setupEventListeners() {
     });
 }
 
+// API Helper Functions
+async function makeAPIRequest(endpoint, options = {}) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'An error occurred');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('API Request Error:', error);
+        throw error;
+    }
+}
+
+// Token management
+function saveToken(token) {
+    // Store token in memory only (no localStorage)
+    window.authToken = token;
+}
+
+function getToken() {
+    return window.authToken || null;
+}
+
+function clearToken() {
+    window.authToken = null;
+}
+
 // Toggle between login and register modes
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
@@ -105,7 +147,7 @@ function toggleAuthMode() {
         }, 250);
         
         brandTitle.textContent = 'Create Account';
-        brandSubtitle.textContent = 'Join us today and get started';
+        brandSubtitle.textContent = 'Join our library management system';
         toggleText.textContent = 'Already have an account?';
         toggleButton.textContent = 'Sign in';
     }
@@ -341,20 +383,41 @@ async function handleLogin(e) {
     setButtonLoading(loginButton, true);
     
     try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Prepare form data for OAuth2PasswordRequestForm
+        const formData = new FormData();
+        formData.append('username', loginEmail.value);
+        formData.append('password', loginPassword.value);
+        
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.detail || 'Login failed');
+        }
+        
+        // Save token and handle successful login
+        saveToken(data.access_token);
         
         console.log('Login successful:', {
             email: loginEmail.value,
-            password: '[HIDDEN]'
+            token: data.access_token
         });
         
         // Handle successful login
-        showSuccessMessage('Login successful! Redirecting...');
+        showSuccessMessage('Login successful! Welcome back!');
+        
+        // Optional: Redirect to dashboard or main page
+        // setTimeout(() => {
+        //     window.location.href = '/dashboard.html';
+        // }, 1500);
         
     } catch (error) {
         console.error('Login error:', error);
-        showError('loginPassword', 'Invalid email or password', true);
+        showError('loginPassword', error.message || 'Invalid email or password', true);
     } finally {
         setButtonLoading(loginButton, false);
     }
@@ -385,21 +448,36 @@ async function handleRegister(e) {
     setButtonLoading(registerButton, true);
     
     try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('Registration successful:', {
+        const userData = {
             name: registerName.value,
             email: registerEmail.value,
-            password: '[HIDDEN]'
+            password: registerPassword.value,
+            role: roleSelect ? roleSelect.value : 'member'
+        };
+        
+        const response = await makeAPIRequest('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(userData)
         });
         
+        console.log('Registration successful:', response);
+        
         // Handle successful registration
-        showSuccessMessage('Account created successfully! Please check your email.');
+        showSuccessMessage('Account created successfully! You can now sign in.');
+        
+        // Auto-switch to login form after successful registration
+        setTimeout(() => {
+            toggleAuthMode();
+            loginEmail.value = registerEmail.value; // Pre-fill email
+        }, 1500);
         
     } catch (error) {
         console.error('Registration error:', error);
-        showError('registerEmail', 'This email is already registered', true);
+        if (error.message.includes('Email already registered')) {
+            showError('registerEmail', 'This email is already registered', true);
+        } else {
+            showError('registerEmail', error.message || 'Registration failed', true);
+        }
     } finally {
         setButtonLoading(registerButton, false);
     }
@@ -447,7 +525,9 @@ function showSuccessMessage(message) {
     setTimeout(() => {
         successDiv.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => {
-            document.body.removeChild(successDiv);
+            if (document.body.contains(successDiv)) {
+                document.body.removeChild(successDiv);
+            }
         }, 300);
     }, 3000);
 }
@@ -479,42 +559,14 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Enhanced form validation with better UX
-function validateAllFields(formType) {
-    let isValid = true;
-    
-    if (formType === 'login') {
-        isValid = validateField('loginEmail') && isValid;
-        isValid = validateField('loginPassword') && isValid;
-    } else {
-        isValid = validateField('registerName') && isValid;
-        isValid = validateField('registerEmail') && isValid;
-        isValid = validateField('registerPassword') && isValid;
-        isValid = validateField('confirmPassword') && isValid;
-    }
-    
-    return isValid;
-}
-
-// Add smooth focus transitions
-document.querySelectorAll('.auth-input').forEach(input => {
-    input.addEventListener('focus', function() {
-        this.parentElement.style.transform = 'scale(1.02)';
-    });
-    
-    input.addEventListener('blur', function() {
-        this.parentElement.style.transform = 'scale(1)';
-    });
-});
-
-// Add keyboard navigation
+// Add keyboard navigation and other enhancements
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && e.target.classList.contains('toggle-button')) {
         toggleAuthMode();
     }
 });
 
-// Prevent form submission on Enter in non-submit elements
+// Enhanced input navigation
 document.querySelectorAll('.auth-input').forEach(input => {
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && this.type !== 'submit') {
@@ -547,3 +599,25 @@ document.querySelectorAll('.input-wrapper').forEach(wrapper => {
         wrapper.style.transform = 'translateY(0)';
     });
 });
+
+// Utility function to get current user info (if logged in)
+async function getCurrentUser() {
+    const token = getToken();
+    if (!token) {
+        return null;
+    }
+    
+    try {
+        const response = await makeAPIRequest('/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response;
+    } catch (error) {
+        console.error('Failed to get current user:', error);
+        clearToken();
+        return null;
+    }
+}

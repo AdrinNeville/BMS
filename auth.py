@@ -5,6 +5,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from database import db, obj_to_str
 import models
+from utils.dependencies import get_current_user
 
 SECRET_KEY = "supersecretkey"   # use env variable in real apps
 ALGORITHM = "HS256"
@@ -47,3 +48,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
     token = create_access_token({"sub": str(user["_id"]), "role": user["role"]}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     return models.Token(access_token=token)
+
+@router.get("/me", response_model=models.UserResponse)
+async def get_current_user_info(current_user: dict = Depends(get_current_user)):
+    """Get current user information"""
+    return models.UserResponse(
+        id=current_user["id"],
+        name=current_user["name"],
+        email=current_user["email"],
+        role=current_user["role"]
+    )
