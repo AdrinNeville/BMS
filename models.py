@@ -15,6 +15,9 @@ class UserResponse(UserBase):
     id: str
     role: str
 
+class UserRoleUpdate(BaseModel):
+    role: str  # New role to assign
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -25,11 +28,14 @@ class BookBase(BaseModel):
     author: str
 
 class BookCreate(BookBase):
-    pass
+    total_copies: int = 1  # Number of copies to add
 
 class BookResponse(BookBase):
     id: int  # Changed to int for auto-increment
     available: bool
+    total_copies: int  # Total number of copies
+    available_copies: int  # Currently available copies
+    borrowed_copies: int  # Currently borrowed copies
 
 # ---------- Borrow ----------
 class BorrowResponse(BaseModel):
