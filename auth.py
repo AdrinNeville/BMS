@@ -6,11 +6,12 @@ from datetime import datetime, timedelta
 from database import db, obj_to_str
 import models
 from utils.dependencies import get_current_user
+from dotenv import load_dotenv
+import os
 
-SECRET_KEY = "supersecretkey"   # use env variable in real apps
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
+SECRET_KEY=os.getenv("SECRET_KEY")
+ALGORITHM=os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(prefix="/auth", tags=["Auth"])
 

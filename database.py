@@ -1,8 +1,9 @@
-# database.py
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
 
-MONGO_URL = "mongodb://localhost:27017/library_db"
+MONGO_URL = os.getenv("MONGO_URL")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.library_db
 
