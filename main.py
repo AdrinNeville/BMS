@@ -8,7 +8,7 @@ app = FastAPI(title="Library Management System with Auth")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000 ,https://68c24894b9e0180b8751d70e--bookmanagementsystem1109.netlify.app/"],
+    allow_origins=["https://bookmanagementsystem1109.netlify.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
