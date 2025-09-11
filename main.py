@@ -6,10 +6,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
+load_dotenv()  # Make sure .env variables are loaded
+
 app = FastAPI(title="Library Management System with Auth")
 
-origins=os.getenv("origins")
+# Get origins from .env (comma-separated list)
+origins = os.getenv("origins", "*")
 
+# Convert to list
+if origins == "*":
+    origins = ["*"]
+else:
+    origins = [origin.strip() for origin in origins.split(",")]
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -18,6 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Routers
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(books.router)
