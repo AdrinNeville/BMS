@@ -3,9 +3,12 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from database import db
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
 
-SECRET_KEY = "supersecretkey"  # Make sure this matches your auth.py
-ALGORITHM = "HS256"
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

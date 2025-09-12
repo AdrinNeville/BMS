@@ -13,7 +13,7 @@ load_dotenv()
 
 SECRET_KEY=os.getenv("SECRET_KEY")
 ALGORITHM=os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") 
+ACCESS_TOKEN_EXPIRE_MINUTES=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))  # Convert to int with default
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -49,8 +49,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": str(user["_id"]), "role": user["role"]}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    return models.Token(access_token=token)
+    # UPDATED SECTION - Replace the old token creation line with this:
+    expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES  # Already converted to int above
+    token = create_access_token(
+        {"sub": str(user["_id"]), "role": user["role"]}, 
+        timedelta(minutes=expires_minutes)
+    )
+    return models.Token(access_token=token, token_type="bearer")
 
 @router.get("/me", response_model=models.UserResponse)
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
