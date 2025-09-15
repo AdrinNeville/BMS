@@ -11,11 +11,11 @@ load_dotenv()  # Make sure .env variables are loaded
 app = FastAPI(title="Library Management System with Auth")
 
 # Get origins from .env (comma-separated string)
-# origins = os.getenv("origins", "*")
+origins = os.getenv("origins")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],#origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
