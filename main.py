@@ -11,15 +11,7 @@ load_dotenv()  # Make sure .env variables are loaded
 app = FastAPI(title="Library Management System with Auth")
 
 # Get origins from .env (comma-separated string)
-origins_str = os.getenv("origins", "*")
-
-# Convert to list
-if origins_str == "*":
-    origins = ["*"]
-else:
-    # Remove any brackets and quotes, then split by comma
-    origins_cleaned = origins_str.strip('[]"').replace('"', '')
-    origins = [origin.strip() for origin in origins_cleaned.split(",") if origin.strip()]
+origins = os.getenv("origins", "*")
 
 app.add_middleware(
     CORSMiddleware,
