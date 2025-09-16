@@ -126,62 +126,6 @@ async def return_book(borrow_id: str, current_user=Depends(get_current_user)):
     
     return models.BorrowResponse(**record)
 
-@router.patch("/admin/{borrow_id}/force-return", response_model=models.BorrowResponse)
-async def admin_force_return_book(borrow_id: str, admin=Depends(admin_required)):
-    """Admin endpoint to force return a book on behalf of any user"""
-    try:
-        record = await db.borrow_records.find_one({"_id": ObjectId(borrow_id)})
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid borrow ID format")
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="Borrow record not found")
-    
-    if record.get("returned_at") is not None:
-        raise HTTPException(status_code=400, detail="Book already returned")
-
-    # Get book details
-    book = await db.books.find_one({"id": record["book_id"]})
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
-
-    # Get user details for logging
-    user = await db.users.find_one({"_id": ObjectId(record["user_id"])})
-    user_name = user.get("name", "Unknown") if user else "Unknown"
-
-    # Increment available copies and decrement borrowed copies
-    new_available = book.get("available_copies", 0) + 1
-    new_borrowed = max(0, book.get("borrowed_copies", 1) - 1)
-    
-    # Book becomes available again
-    is_available = True
-    
-    return_time = datetime.utcnow()
-    
-    # Update borrow record
-    await db.borrow_records.update_one(
-        {"_id": record["_id"]}, 
-        {"$set": {"returned_at": return_time}}
-    )
-    
-    # Update book availability and counts
-    await db.books.update_one(
-        {"id": record["book_id"]}, 
-        {
-            "$set": {
-                "available_copies": new_available,
-                "borrowed_copies": new_borrowed,
-                "available": is_available
-            }
-        }
-    )
-
-    # Prepare response
-    record["id"] = str(record["_id"])
-    record["returned_at"] = return_time
-    
-    return models.BorrowResponse(**record)
-
 @router.get("/my-borrows", response_model=list[models.BorrowResponse])
 async def get_my_borrows(current_user=Depends(get_current_user)):
     # Ensure we have user ID
