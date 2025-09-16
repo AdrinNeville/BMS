@@ -27,6 +27,6 @@ app.include_router(users.router)
 app.include_router(books.router)
 app.include_router(borrow.router)
 
-@app.get("/config")
+@app.get("/")
 def get_config():
-    return {"API_BASE_URL": os.getenv("API_BASE_URL")}
+    return ("Book Management System Running")
