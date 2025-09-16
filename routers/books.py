@@ -184,3 +184,64 @@ async def update_book_status(book_id: int, available: bool, admin=Depends(admin_
         raise HTTPException(status_code=404, detail="Book not found")
     
     return {"message": "Book status updated"}
+
+@router.delete("/{book_id}/discontinue-copies")
+async def delete_book_copies(book_id: int, admin=Depends(admin_required)):
+    """Discontinue all copies of a book (only if no copies are currently borrowed)"""
+    book = await db.books.find_one({"id": book_id})
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    borrowed_copies = book.get("borrowed_copies", 0)
+    total_copies = book.get("total_copies", 1)
+    
+    # Check if any copies are currently borrowed
+    if borrowed_copies > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot discontinue book. {borrowed_copies} copies are currently borrowed"
+        )
+    
+    # Remove the book entirely from the collection
+    result = await db.books.delete_one({"id": book_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    return {"message": f"Book '{book.get('title', 'Unknown')}' has been discontinued and removed from the library"}
+
+# Alternative version if you want to keep the book record but mark it as discontinued
+@router.delete("/{book_id}/discontinue")
+async def discontinue_book(book_id: int, admin=Depends(admin_required)):
+    """Mark a book as discontinued (only if no copies are currently borrowed)"""
+    book = await db.books.find_one({"id": book_id})
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    borrowed_copies = book.get("borrowed_copies", 0)
+    
+    # Check if any copies are currently borrowed
+    if borrowed_copies > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot discontinue book. {borrowed_copies} copies are currently borrowed"
+        )
+    
+    # Mark book as discontinued but keep the record
+    result = await db.books.update_one(
+        {"id": book_id},
+        {
+            "$set": {
+                "total_copies": 0,
+                "available_copies": 0,
+                "borrowed_copies": 0,
+                "available": False,
+                "discontinued": True
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    return {"message": f"Book '{book.get('title', 'Unknown')}' has been discontinued"}
